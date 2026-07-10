@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gimnasio | Procesando...</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            text-align: center;
+            padding-top: 20vh;
+            margin: 0;
+        }
+        .loader {
+            border: 4px solid #333;
+            border-top: 4px solid #00ff88;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        #mensaje { font-size: 1.2rem; color: #aaaaaa; }
+        .success { color: #00ff88 !important; font-weight: bold; }
+        .error { color: #ff4444 !important; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div id="spinner" class="loader"></div>
+    <div id="mensaje">Procesando tu ingreso...</div>
+
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const setupUserId = urlParams.get('setup_user');
+        const accion = urlParams.get('accion');
+        const spinner = document.getElementById('spinner');
+        const mensajeEl = document.getElementById('mensaje');
+
+        // CASO 1: Vinculación inicial del dispositivo (El Alta)
+        if (setupUserId) {
+            localStorage.setItem('gym_id_usuario', setupUserId);
+            spinner.style.display = 'none';
+            mensajeEl.className = 'success';
+            mensajeEl.innerText = `¡Teléfono vinculado con éxito! \nUsuario ID: ${setupUserId}`;
+        }
+
+        // CASO 2: Escaneo en la entrada del gimnasio
+        else if (accion === 'ver_rutina') {
+            const usuarioId = localStorage.getItem('gym_id_usuario');
+
+            if (!usuarioId) {
+                spinner.style.display = 'none';
+                mensajeEl.className = 'error';
+                mensajeEl.innerText = "Error: Este teléfono no está vinculado. Solicita tu alta en recepción.";
+            } else {
+                const diasEnum = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+                const hoy = diasEnum[new Date().getDay()];
+
+                // Enviamos a n8n solo quién es y qué día es
+                const n8nWebhookUrl = `https://tu-instancia-n8n.com/webhook/gym-nfc?id_usuario=${usuarioId}&dia=${hoy}`;
+                window.location.href = n8nWebhookUrl;
+            }
+        }
+
+        else {
+            spinner.style.display = 'none';
+            mensajeEl.innerText = "Acerca tu teléfono al chip de la entrada para ver tu rutina de hoy.";
+        }
+    </script>
+</body>
+</html>
