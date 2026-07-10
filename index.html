@@ -1,111 +1,319 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gimnasio | Procesando...</title>
-    <style>
-        body { 
-            background-color: #121212; 
-            color: #ffffff; 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            text-align: center; 
-            padding-top: 15vh; 
-            margin: 0;
-        }
-        .loader {
-            border: 4px solid #333;
-            border-top: 4px solid #00ff88;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px auto;
-        }
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        #mensaje { 
-            font-size: 1.2rem; 
-            color: #aaaaaa; 
-            padding: 0 20px; 
-            line-height: 1.5; 
-            white-space: pre-line;
-            margin-bottom: 20px;
-        }
-        .success { color: #00ff88 !important; font-weight: bold; }
-        .error { color: #ff4444 !important; font-weight: bold; }
-        
-        /* Estilos del formulario de Login */
-        #login-form {
-            display: none;
-            background: #1e1e1e;
-            padding: 30px 20px;
-            border-radius: 10px;
-            max-width: 300px;
-            margin: 0 auto;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-            border: 1px solid #333;
-        }
-        #login-form h3 { margin-top: 0; color: #00ff88; font-size: 1.5rem; margin-bottom: 10px; }
-        input { 
-            width: 100%; 
-            padding: 12px; 
-            margin: 10px 0 20px 0; 
-            border-radius: 5px; 
-            border: 1px solid #444; 
-            background: #2a2a2a; 
-            color: white; 
-            box-sizing: border-box;
-            font-size: 1rem;
-        }
-        input:focus { outline: none; border-color: #00ff88; }
-        button { 
-            width: 100%; 
-            padding: 12px; 
-            background-color: #00ff88; 
-            color: #121212; 
-            font-weight: bold; 
-            font-size: 1rem;
-            border: none; 
-            border-radius: 5px; 
-            cursor: pointer; 
-            transition: background 0.3s;
-        }
-        button:hover { background-color: #00cc6a; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gimnasio | Procesando...</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+    :root {
+        --bg: #0a0c0f;
+        --bg-glow: #0f1720;
+        --surface: #14171c;
+        --surface-2: #1b1f25;
+        --border: #262b32;
+        --text: #f2f4f6;
+        --text-muted: #838c98;
+        --accent: #35d68a;
+        --accent-dim: rgba(53, 214, 138, 0.12);
+        --danger: #ff5c6a;
+        --danger-dim: rgba(255, 92, 106, 0.12);
+        --radius: 16px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+        background:
+            radial-gradient(circle at 50% 0%, var(--bg-glow) 0%, var(--bg) 55%);
+        color: var(--text);
+        font-family: 'Inter', -apple-system, sans-serif;
+        min-height: 100vh;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+    }
+
+    .scene {
+        width: 100%;
+        max-width: 380px;
+        opacity: 0;
+        transform: translateY(14px);
+        animation: rise 0.6s cubic-bezier(.2,.8,.2,1) forwards;
+    }
+
+    @keyframes rise {
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .card {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 36px 28px;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.45);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .card::before {
+        content: "";
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--accent), transparent);
+        opacity: 0.7;
+    }
+
+    .eyebrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 22px;
+    }
+
+    .eyebrow .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    /* Pulso / loader */
+    .pulse-wrap {
+        width: 120px;
+        height: 48px;
+        margin: 0 auto 22px auto;
+    }
+
+    .pulse-wrap svg { width: 100%; height: 100%; display: block; }
+
+    .pulse-line {
+        fill: none;
+        stroke: var(--accent);
+        stroke-width: 2.4;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 220;
+        stroke-dashoffset: 220;
+        animation: draw 1.6s ease-in-out infinite;
+    }
+
+    @keyframes draw {
+        0%   { stroke-dashoffset: 220; opacity: 0.35; }
+        50%  { stroke-dashoffset: 0;   opacity: 1; }
+        100% { stroke-dashoffset: -220; opacity: 0.35; }
+    }
+
+    #mensaje {
+        font-size: 1rem;
+        color: var(--text-muted);
+        line-height: 1.55;
+        white-space: pre-line;
+        margin: 0;
+    }
+
+    .success { color: var(--accent) !important; font-weight: 600; }
+    .error { color: var(--danger) !important; font-weight: 600; }
+
+    .success::before, .error::before {
+        content: "";
+        display: block;
+        width: 34px;
+        height: 34px;
+        margin: 0 auto 14px auto;
+        border-radius: 50%;
+        position: relative;
+        animation: pop 0.4s cubic-bezier(.2,1.4,.4,1) both;
+    }
+
+    .success::before {
+        background: var(--accent-dim);
+        border: 1.5px solid var(--accent);
+    }
+    .success::after {
+        content: "";
+        position: absolute;
+    }
+    /* Checkmark drawn with pseudo-element clip via extra span replaced through ::before shape trick */
+    .success::before {
+        background-image:
+            linear-gradient(45deg, transparent 42%, var(--accent) 42%, var(--accent) 48%, transparent 48%),
+            linear-gradient(-45deg, transparent 52%, var(--accent) 52%, var(--accent) 58%, transparent 58%);
+        background-size: 60% 60%, 34% 60%;
+        background-position: 32% 55%, 58% 40%;
+        background-repeat: no-repeat;
+        background-color: var(--accent-dim);
+    }
+
+    .error::before {
+        background-color: var(--danger-dim);
+        border: 1.5px solid var(--danger);
+        background-image:
+            linear-gradient(45deg, transparent 46%, var(--danger) 46%, var(--danger) 54%, transparent 54%),
+            linear-gradient(-45deg, transparent 46%, var(--danger) 46%, var(--danger) 54%, transparent 54%);
+        background-size: 60% 60%;
+        background-position: center;
+        background-repeat: no-repeat;
+    }
+
+    @keyframes pop {
+        from { transform: scale(0.4); opacity: 0; }
+        to { transform: scale(1); opacity: 1; }
+    }
+
+    /* Formulario */
+    #login-form {
+        display: none;
+        text-align: left;
+    }
+
+    #login-form h3 {
+        font-family: 'Space Grotesk', sans-serif;
+        margin: 0 0 6px 0;
+        color: var(--text);
+        font-size: 1.4rem;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+        text-align: center;
+    }
+
+    #login-form > p {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-align: center;
+        margin: 0 0 26px 0;
+        line-height: 1.5;
+    }
+
+    .field {
+        margin-bottom: 16px;
+    }
+
+    .field label {
+        display: block;
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.68rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--text-muted);
+        margin-bottom: 7px;
+    }
+
+    input {
+        width: 100%;
+        padding: 13px 14px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: var(--surface-2);
+        color: var(--text);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95rem;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    input::placeholder { color: #565d68; }
+
+    input:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px var(--accent-dim);
+    }
+
+    button {
+        width: 100%;
+        margin-top: 6px;
+        padding: 14px;
+        background: var(--accent);
+        color: #06120c;
+        font-family: 'Space Grotesk', sans-serif;
+        font-weight: 600;
+        font-size: 0.95rem;
+        letter-spacing: 0.01em;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: transform 0.15s ease, box-shadow 0.2s ease, background 0.2s ease;
+    }
+
+    button:hover {
+        background: #47e39c;
+        box-shadow: 0 8px 20px var(--accent-dim);
+        transform: translateY(-1px);
+    }
+
+    button:active { transform: translateY(0); }
+
+    button:focus-visible, input:focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .scene { animation: none; opacity: 1; transform: none; }
+        .pulse-line { animation: none; stroke-dashoffset: 0; }
+        .success::before, .error::before { animation: none; }
+    }
+</style>
 </head>
 <body>
-    <div id="spinner" class="loader"></div>
-    <div id="mensaje">Conectando con el servidor...</div>
+    <div class="scene">
+        <div class="card">
+            <div class="eyebrow"><span class="dot"></span>Control de acceso</div>
 
-    <!-- Formulario de Registro / Login Invisible al inicio -->
-    <div id="login-form">
-        <h3>Vincular Teléfono</h3>
-        <p style="font-size: 0.9em; color: #aaa; margin-bottom: 20px;">Parece que es tu primera vez. Ingresa tus datos para identificarte.</p>
-        
-        <input type="text" id="nombre" placeholder="Tu Nombre (Ej. Juan)" required>
-        <input type="number" id="dni" placeholder="Tu número de DNI" required>
-        
-        <button onclick="vincularTelefono()">Verificar y Vincular</button>
+            <div id="spinner" class="pulse-wrap">
+                <svg viewBox="0 0 200 60" preserveAspectRatio="none">
+                    <path class="pulse-line" d="M0,30 L55,30 L68,8 L82,52 L96,30 L200,30" />
+                </svg>
+            </div>
+
+            <div id="mensaje">Conectando con el servidor...</div>
+
+            <!-- Formulario de Registro / Login Invisible al inicio -->
+            <div id="login-form">
+                <h3>Vincular teléfono</h3>
+                <p>Parece que es tu primera vez. Ingresá tus datos para identificarte.</p>
+
+                <div class="field">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" placeholder="Ej. Juan Pérez" required>
+                </div>
+                <div class="field">
+                    <label for="dni">Número de DNI</label>
+                    <input type="number" id="dni" placeholder="Ej. 30123456" required>
+                </div>
+
+                <button onclick="vincularTelefono()">Verificar y vincular</button>
+            </div>
+        </div>
     </div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const setupUserId = urlParams.get('setup_user');
         const accion = urlParams.get('accion');
-        
+
         const spinner = document.getElementById('spinner');
         const mensajeEl = document.getElementById('mensaje');
         const loginForm = document.getElementById('login-form');
 
         // =======================================================
         // URL 1: Webhook para ver la rutina (El que ya creaste)
-        const N8N_WEBHOOK_RUTINA_URL = "https://vps-6071355-x.dattaweb.com/webhook/gym-nfc"; 
-        
+        const N8N_WEBHOOK_RUTINA_URL = "https://vps-6071355-x.dattaweb.com/webhook/gym-nfc";
+
         // URL 2: NUEVO Webhook para validar DNI y Nombre
-        const N8N_WEBHOOK_LOGIN_URL = "https://vps-6071355-x.dattaweb.com/webhook/28b18824-b295-444f-96db-0c56fc9ba2cd"; 
+        const N8N_WEBHOOK_LOGIN_URL = "https://vps-6071355-x.dattaweb.com/webhook/28b18824-b295-444f-96db-0c56fc9ba2cd";
         // =======================================================
 
         // CASO 1: Vinculación manual por URL (setup_user=1) - Por si quieres seguir usándolo
@@ -114,12 +322,12 @@
             spinner.style.display = 'none';
             mensajeEl.className = 'success';
             mensajeEl.innerText = `¡Teléfono vinculado con éxito!\nUsuario ID: ${setupUserId}`;
-        } 
-        
+        }
+
         // CASO 2: Escaneo en la entrada del gimnasio (accion=ver_rutina)
         else if (accion === 'ver_rutina') {
             const usuarioId = localStorage.getItem('gym_id_usuario');
-            
+
             if (!usuarioId) {
                 // EL USUARIO NO ESTÁ VINCULADO -> OCULTAR MENSAJE Y MOSTRAR FORMULARIO
                 spinner.style.display = 'none';
@@ -130,11 +338,11 @@
                 mensajeEl.innerText = "Buscando tu rutina de hoy...";
                 const diasEnum = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
                 const hoy = diasEnum[new Date().getDay()];
-                
+
                 window.location.href = `${N8N_WEBHOOK_RUTINA_URL}?id_usuario=${usuarioId}&dia=${hoy}`;
             }
-        } 
-        
+        }
+
         // CASO 3: Acceso sin parámetros
         else {
             spinner.style.display = 'none';
@@ -147,39 +355,39 @@
         async function vincularTelefono() {
             const dni = document.getElementById('dni').value;
             const nombre = document.getElementById('nombre').value;
-            
+
             // Validar que no estén vacíos
-            if(!dni || !nombre) {
+            if (!dni || !nombre) {
                 mensajeEl.style.display = 'block';
                 mensajeEl.className = 'error';
-                mensajeEl.innerText = "Por favor, completa ambos campos.";
+                mensajeEl.innerText = "Por favor, completá ambos campos.";
                 return;
             }
-            
+
             // Mostrar interfaz de "cargando"
             loginForm.style.display = 'none';
             mensajeEl.style.display = 'block';
             mensajeEl.className = '';
             mensajeEl.innerText = "Verificando en el sistema...";
             spinner.style.display = 'block';
-            
+
             try {
                 // Hacemos la petición HTTP GET a tu nuevo webhook de n8n
                 const response = await fetch(`${N8N_WEBHOOK_LOGIN_URL}?dni=${dni}&nombre=${nombre}`);
                 const data = await response.json();
-                
+
                 if (data.encontrado === true && data.id_usuario) {
                     // ÉXITO: Guardar ID invisible en el navegador y mostrar mensaje final
                     localStorage.setItem('gym_id_usuario', data.id_usuario);
                     spinner.style.display = 'none';
                     mensajeEl.className = 'success';
-                    mensajeEl.innerText = "¡Tu teléfono fue configurado con éxito!\n\nVuelve a escanear el chip NFC para ver tu rutina.";
+                    mensajeEl.innerText = "¡Tu teléfono fue configurado con éxito!\n\nVolvé a escanear el chip NFC para ver tu rutina.";
                 } else {
                     // ERROR: DNI no encontrado
                     spinner.style.display = 'none';
                     mensajeEl.className = 'error';
                     mensajeEl.innerText = "No estás registrado en el sistema o el DNI es incorrecto.";
-                    
+
                     // Volver a mostrar el formulario tras unos 4 segundos
                     setTimeout(() => {
                         mensajeEl.style.display = 'none';
@@ -190,8 +398,8 @@
                 // ERROR de red o n8n caído
                 spinner.style.display = 'none';
                 mensajeEl.className = 'error';
-                mensajeEl.innerText = "Error de conexión con el servidor. Intenta nuevamente.";
-                
+                mensajeEl.innerText = "Error de conexión con el servidor. Intentá nuevamente.";
+
                 setTimeout(() => {
                     mensajeEl.style.display = 'none';
                     loginForm.style.display = 'block';
