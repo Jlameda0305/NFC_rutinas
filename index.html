@@ -10,7 +10,7 @@
             color: #ffffff; 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
             text-align: center; 
-            padding-top: 20vh; 
+            padding-top: 15vh; 
             margin: 0;
         }
         .loader {
@@ -31,30 +31,84 @@
             color: #aaaaaa; 
             padding: 0 20px; 
             line-height: 1.5; 
-            white-space: pre-line; /* Permite saltos de línea en el texto */
+            white-space: pre-line;
+            margin-bottom: 20px;
         }
         .success { color: #00ff88 !important; font-weight: bold; }
         .error { color: #ff4444 !important; font-weight: bold; }
+        
+        /* Estilos del formulario de Login */
+        #login-form {
+            display: none;
+            background: #1e1e1e;
+            padding: 30px 20px;
+            border-radius: 10px;
+            max-width: 300px;
+            margin: 0 auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+            border: 1px solid #333;
+        }
+        #login-form h3 { margin-top: 0; color: #00ff88; font-size: 1.5rem; margin-bottom: 10px; }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 10px 0 20px 0; 
+            border-radius: 5px; 
+            border: 1px solid #444; 
+            background: #2a2a2a; 
+            color: white; 
+            box-sizing: border-box;
+            font-size: 1rem;
+        }
+        input:focus { outline: none; border-color: #00ff88; }
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            background-color: #00ff88; 
+            color: #121212; 
+            font-weight: bold; 
+            font-size: 1rem;
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            transition: background 0.3s;
+        }
+        button:hover { background-color: #00cc6a; }
     </style>
 </head>
 <body>
     <div id="spinner" class="loader"></div>
     <div id="mensaje">Conectando con el servidor...</div>
 
+    <!-- Formulario de Registro / Login Invisible al inicio -->
+    <div id="login-form">
+        <h3>Vincular Teléfono</h3>
+        <p style="font-size: 0.9em; color: #aaa; margin-bottom: 20px;">Parece que es tu primera vez. Ingresa tus datos para identificarte.</p>
+        
+        <input type="text" id="nombre" placeholder="Tu Nombre (Ej. Juan)" required>
+        <input type="number" id="dni" placeholder="Tu número de DNI" required>
+        
+        <button onclick="vincularTelefono()">Verificar y Vincular</button>
+    </div>
+
     <script>
         const urlParams = new URLSearchParams(window.location.search);
         const setupUserId = urlParams.get('setup_user');
         const accion = urlParams.get('accion');
+        
         const spinner = document.getElementById('spinner');
         const mensajeEl = document.getElementById('mensaje');
+        const loginForm = document.getElementById('login-form');
 
         // =======================================================
-        // IMPORTANTE: REEMPLAZA ESTA URL POR LA DE TU WEBHOOK DE N8N
-        // (Asegúrate de no incluir el ?id_usuario... al final de esta variable)
+        // URL 1: Webhook para ver la rutina (El que ya creaste)
+        const N8N_WEBHOOK_RUTINA_URL = "https://vps-6071355-x.dattaweb.com/webhook/gym-nfc"; 
+        
+        // URL 2: NUEVO Webhook para validar DNI y Nombre
+        const N8N_WEBHOOK_LOGIN_URL = "https://vps-6071355-x.dattaweb.com/webhook/28b18824-b295-444f-96db-0c56fc9ba2cd"; 
         // =======================================================
-        const N8N_WEBHOOK_BASE_URL = "https://vps-6071355-x.dattaweb.com/webhook/gym-nfc"; 
 
-        // CASO 1: Vinculación inicial del dispositivo (El Alta)
+        // CASO 1: Vinculación manual por URL (setup_user=1) - Por si quieres seguir usándolo
         if (setupUserId) {
             localStorage.setItem('gym_id_usuario', setupUserId);
             spinner.style.display = 'none';
@@ -62,31 +116,87 @@
             mensajeEl.innerText = `¡Teléfono vinculado con éxito!\nUsuario ID: ${setupUserId}`;
         } 
         
-        // CASO 2: Escaneo en la entrada del gimnasio
+        // CASO 2: Escaneo en la entrada del gimnasio (accion=ver_rutina)
         else if (accion === 'ver_rutina') {
             const usuarioId = localStorage.getItem('gym_id_usuario');
             
             if (!usuarioId) {
+                // EL USUARIO NO ESTÁ VINCULADO -> OCULTAR MENSAJE Y MOSTRAR FORMULARIO
                 spinner.style.display = 'none';
-                mensajeEl.className = 'error';
-                mensajeEl.innerText = "Error: Este teléfono no está vinculado. Solicita tu enlace de alta en recepción.";
+                mensajeEl.style.display = 'none';
+                loginForm.style.display = 'block';
             } else {
+                // EL USUARIO YA TIENE SESIÓN -> REDIRIGIR AL WEBHOOK DE LA RUTINA
                 mensajeEl.innerText = "Buscando tu rutina de hoy...";
-                
-                // Extraer el día de la semana asegurando que coincida con la base de datos
                 const diasEnum = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
                 const hoy = diasEnum[new Date().getDay()];
-
-                // Construir la URL final con los parámetros y redireccionar hacia n8n
-                const n8nUrlFinal = `${N8N_WEBHOOK_BASE_URL}?id_usuario=${usuarioId}&dia=${hoy}`;
-                window.location.href = n8nUrlFinal;
+                
+                window.location.href = `${N8N_WEBHOOK_RUTINA_URL}?id_usuario=${usuarioId}&dia=${hoy}`;
             }
         } 
         
-        // CASO 3: Acceso sin parámetros o URL limpia
+        // CASO 3: Acceso sin parámetros
         else {
             spinner.style.display = 'none';
             mensajeEl.innerText = "Acerca tu teléfono al chip de la entrada para ver tu rutina de hoy.";
+        }
+
+        // =======================================================
+        // LÓGICA DEL BOTÓN DE VINCULACIÓN (Llama a la API de n8n)
+        // =======================================================
+        async function vincularTelefono() {
+            const dni = document.getElementById('dni').value;
+            const nombre = document.getElementById('nombre').value;
+            
+            // Validar que no estén vacíos
+            if(!dni || !nombre) {
+                mensajeEl.style.display = 'block';
+                mensajeEl.className = 'error';
+                mensajeEl.innerText = "Por favor, completa ambos campos.";
+                return;
+            }
+            
+            // Mostrar interfaz de "cargando"
+            loginForm.style.display = 'none';
+            mensajeEl.style.display = 'block';
+            mensajeEl.className = '';
+            mensajeEl.innerText = "Verificando en el sistema...";
+            spinner.style.display = 'block';
+            
+            try {
+                // Hacemos la petición HTTP GET a tu nuevo webhook de n8n
+                const response = await fetch(`${N8N_WEBHOOK_LOGIN_URL}?dni=${dni}&nombre=${nombre}`);
+                const data = await response.json();
+                
+                if (data.encontrado === true && data.id_usuario) {
+                    // ÉXITO: Guardar ID invisible en el navegador y mostrar mensaje final
+                    localStorage.setItem('gym_id_usuario', data.id_usuario);
+                    spinner.style.display = 'none';
+                    mensajeEl.className = 'success';
+                    mensajeEl.innerText = "¡Tu teléfono fue configurado con éxito!\n\nVuelve a escanear el chip NFC para ver tu rutina.";
+                } else {
+                    // ERROR: DNI no encontrado
+                    spinner.style.display = 'none';
+                    mensajeEl.className = 'error';
+                    mensajeEl.innerText = "No estás registrado en el sistema o el DNI es incorrecto.";
+                    
+                    // Volver a mostrar el formulario tras unos 4 segundos
+                    setTimeout(() => {
+                        mensajeEl.style.display = 'none';
+                        loginForm.style.display = 'block';
+                    }, 4000);
+                }
+            } catch (error) {
+                // ERROR de red o n8n caído
+                spinner.style.display = 'none';
+                mensajeEl.className = 'error';
+                mensajeEl.innerText = "Error de conexión con el servidor. Intenta nuevamente.";
+                
+                setTimeout(() => {
+                    mensajeEl.style.display = 'none';
+                    loginForm.style.display = 'block';
+                }, 4000);
+            }
         }
     </script>
 </body>
