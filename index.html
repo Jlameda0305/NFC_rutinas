@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gimnasio | Procesando...</title>
     <style>
-        body {
-            background-color: #121212;
-            color: #ffffff;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            text-align: center;
-            padding-top: 20vh;
+        body { 
+            background-color: #121212; 
+            color: #ffffff; 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            text-align: center; 
+            padding-top: 20vh; 
             margin: 0;
         }
         .loader {
@@ -26,14 +26,20 @@
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-        #mensaje { font-size: 1.2rem; color: #aaaaaa; }
+        #mensaje { 
+            font-size: 1.2rem; 
+            color: #aaaaaa; 
+            padding: 0 20px; 
+            line-height: 1.5; 
+            white-space: pre-line; /* Permite saltos de línea en el texto */
+        }
         .success { color: #00ff88 !important; font-weight: bold; }
         .error { color: #ff4444 !important; font-weight: bold; }
     </style>
 </head>
 <body>
     <div id="spinner" class="loader"></div>
-    <div id="mensaje">Procesando tu ingreso...</div>
+    <div id="mensaje">Conectando con el servidor...</div>
 
     <script>
         const urlParams = new URLSearchParams(window.location.search);
@@ -42,32 +48,42 @@
         const spinner = document.getElementById('spinner');
         const mensajeEl = document.getElementById('mensaje');
 
+        // =======================================================
+        // IMPORTANTE: REEMPLAZA ESTA URL POR LA DE TU WEBHOOK DE N8N
+        // (Asegúrate de no incluir el ?id_usuario... al final de esta variable)
+        // =======================================================
+        const N8N_WEBHOOK_BASE_URL = "https://TU-URL-DE-N8N.com/webhook/gym-nfc"; 
+
         // CASO 1: Vinculación inicial del dispositivo (El Alta)
         if (setupUserId) {
             localStorage.setItem('gym_id_usuario', setupUserId);
             spinner.style.display = 'none';
             mensajeEl.className = 'success';
-            mensajeEl.innerText = `¡Teléfono vinculado con éxito! \nUsuario ID: ${setupUserId}`;
-        }
-
+            mensajeEl.innerText = `¡Teléfono vinculado con éxito!\nUsuario ID: ${setupUserId}`;
+        } 
+        
         // CASO 2: Escaneo en la entrada del gimnasio
         else if (accion === 'ver_rutina') {
             const usuarioId = localStorage.getItem('gym_id_usuario');
-
+            
             if (!usuarioId) {
                 spinner.style.display = 'none';
                 mensajeEl.className = 'error';
-                mensajeEl.innerText = "Error: Este teléfono no está vinculado. Solicita tu alta en recepción.";
+                mensajeEl.innerText = "Error: Este teléfono no está vinculado. Solicita tu enlace de alta en recepción.";
             } else {
+                mensajeEl.innerText = "Buscando tu rutina de hoy...";
+                
+                // Extraer el día de la semana asegurando que coincida con la base de datos
                 const diasEnum = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
                 const hoy = diasEnum[new Date().getDay()];
 
-                // Enviamos a n8n solo quién es y qué día es
-                const n8nWebhookUrl = `https://tu-instancia-n8n.com/webhook/gym-nfc?id_usuario=${usuarioId}&dia=${hoy}`;
-                window.location.href = n8nWebhookUrl;
+                // Construir la URL final con los parámetros y redireccionar hacia n8n
+                const n8nUrlFinal = `${N8N_WEBHOOK_BASE_URL}?id_usuario=${usuarioId}&dia=${hoy}`;
+                window.location.href = n8nUrlFinal;
             }
-        }
-
+        } 
+        
+        // CASO 3: Acceso sin parámetros o URL limpia
         else {
             spinner.style.display = 'none';
             mensajeEl.innerText = "Acerca tu teléfono al chip de la entrada para ver tu rutina de hoy.";
